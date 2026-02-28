@@ -1,0 +1,47 @@
+const Account = require("../models/Account");
+const { v4: uuidv4 } = require("uuid");
+
+// Create Account
+const createAccount = async (req, res) => {
+  try {
+
+    const accountNumber = "ACC-" + uuidv4();
+
+    const account = await Account.create({
+      accountNumber,
+      user: req.user._id,
+      balance: 0
+    });
+
+    res.status(201).json({
+      message: "Account created successfully",
+      account
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+// Get My Accounts
+const getMyAccounts = async (req, res) => {
+  try {
+    const accounts = await Account.find({
+      user: req.user._id
+    });
+
+    res.status(200).json(accounts);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+module.exports = {
+  createAccount,
+  getMyAccounts
+};

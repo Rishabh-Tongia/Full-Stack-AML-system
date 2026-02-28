@@ -23,14 +23,29 @@ const transactionSchema = new mongoose.Schema({
         default: false
     },
 
-    flagReason: {
+    assignedTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+    status: {
         type: String,
-        default: ""
-    }
+        enum: ["Pending", "Under Review", "Cleared", "Confirmed Suspicious"],
+        default: "Pending"
+    },
+
+    riskScore: {
+        type: Number,
+        default: 0
+    },
+
+    flagReasons: [{
+        type: String,
+    }]
 },
     {
         timestamps: true
     }
 );
 
-module.exports = mongoose.model("Transaction",transactionSchema);
+module.exports = mongoose.model("Transaction", transactionSchema);
