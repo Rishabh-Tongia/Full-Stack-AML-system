@@ -17,7 +17,10 @@ const createTransaction = async (req, res) => {
         }
 
         //find Account
-        const account = await Account.findById(accountId);
+        const account = await Account.findOne({
+            _id: accountId,
+            user: req.user._id
+        });
 
         if (!account) {
             return res.status(400).json({ message: "Account not found" });
@@ -31,7 +34,7 @@ const createTransaction = async (req, res) => {
 
         if (account.isFrozen) {
             return res.status(403).json({
-                message: "Account is frozen due to suspicious activity"
+                message: "Account is frozen due to compliance review"
             });
         }
 
@@ -62,10 +65,10 @@ const createTransaction = async (req, res) => {
             flagReasons
         });
 
-        res.status(200).json({
-            message: "Transaction successfull",
-            transaction
-        });
+        const generateCaseNumber = async () => {
+            const count = await Case.countDocuments();
+            return `CASE-${String(count + 1).padStart(4, "0")}`;
+        };
 
         if (isFlagged) {
 
@@ -82,15 +85,18 @@ const createTransaction = async (req, res) => {
 
             let existingCase = await Case.findOne({
                 account: accountId,
-                status: { $in: ["Pending", "Under Review"] }
+                status: { $in: ["pending", "underReview"] }
             });
 
             if (!existingCase) {
                 // Create new case
+                const caseNumber = await generateCaseNumber();
+
                 await Case.create({
+                    caseNumber,
                     account: accountId,
                     transactions: [transaction._id],
-                    totalRiskScore: riskScore
+                    totalRiskScore: riskScore,
                 });
             } else {
                 // Update existing case
@@ -99,12 +105,16 @@ const createTransaction = async (req, res) => {
                 await existingCase.save();
             }
         }
+        res.status(200).json({
+            message: "Transaction successfull",
+            transaction
+        });
 
-        if (transaction.isFlagged) {
-            const analyst = await User.findOne({ role: "analyst" });
+        // if (transaction.isFlagged) {
+        //     const analyst = await User.findOne({ role: "analyst" });
 
-            transaction.assignedTo = analyst._id;
-        }
+        //     transaction.assignedTo = analyst._id;
+        // }
     }
     catch (error) {
         res.status(400).json({ message: error.message });
@@ -124,4 +134,24 @@ const getAllTransactions = async (req, res) => {
     }
 };
 
-module.exports = { createTransaction, getAllTransactions };
+const getTransactionsByAccount = async (req, res) => {
+
+    try {
+
+        const transactions = await Transaction.find({
+            account: req.params.id
+        }).sort({ createdAt: -1 });
+
+        res.json(transactions);
+
+    } catch (error) {
+
+        res.status(500).json({
+            message: error.message
+        });
+
+    }
+
+};
+
+module.exports = { createTransaction, getAllTransactions, getTransactionsByAccount };

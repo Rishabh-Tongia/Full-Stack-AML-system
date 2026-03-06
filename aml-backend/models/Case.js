@@ -8,6 +8,11 @@ const caseSchema = new mongoose.Schema(
       required: true
     },
 
+    caseNumber: {
+      type: String,
+      unique: true
+    },
+
     transactions: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -18,13 +23,13 @@ const caseSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "Pending",
-        "Under Review",
-        "Escalated",
-        "Reported",
-        "Closed"
+        "pending",
+        "underReview",
+        "escalated",
+        "reported",
+        "closed"
       ],
-      default: "Pending"
+      default: "pending"
     },
 
     totalRiskScore: {
@@ -32,10 +37,22 @@ const caseSchema = new mongoose.Schema(
       default: 0
     },
 
-    analystNotes: {
-      type: String,
-      default: ""
-    },
+    notes: [
+      {
+        text: {
+          type: String,
+          required: true,
+        },
+        addedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        addedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
 
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,

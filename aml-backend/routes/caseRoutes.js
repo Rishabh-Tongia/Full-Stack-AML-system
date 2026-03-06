@@ -3,10 +3,17 @@ const router = express.Router();
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 
-const { getOpenCases, addCaseNotes, escalateCase, reportCase, closeCase} = require("../controllers/caseController");
+const { getOpenCases, addCaseNotes, escalateCase, reportCase, closeCase, getCaseById, getAnalysts, getMyCases} = require("../controllers/caseController");
 const { assignCase } = require("../controllers/caseController")
 
+router.get("/analysts", protect, authorize("admin"), getAnalysts);
+
+router.get(
+  "/my-cases", protect, authorize("analyst"), getMyCases);
+
 router.get("/", protect, authorize("admin"), getOpenCases);
+
+router.get("/:id",  protect, authorize("admin"), getCaseById);
 
 router.put("/:id/assign", protect, authorize("admin"), assignCase);
 

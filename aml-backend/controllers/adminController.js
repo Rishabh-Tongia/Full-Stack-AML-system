@@ -48,7 +48,7 @@ const assignCase = async (req, res) => {
     }
 
     caseData.assignedTo = analyst._id;
-    caseData.status = "Under Review";
+    caseData.status = "UnderReview";
 
     await caseData.save();
 
@@ -62,21 +62,25 @@ const assignCase = async (req, res) => {
   }
 };
 
+const getAllCases = async (req, res) => {
+  try {
+    const cases = await Case.find()
+      .populate("assignedTo", "name email") // only fetch name & email
+      .populate("transaction") 
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(cases);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getDashboardStats = async (req, res) => {
   try {
-    const totalTransactions = await Transaction.countDocuments();
-
-    const flaggedTransactions = await Transaction.countDocuments({
-      isFlagged: true
-    });
-
-    const openCases = await Case.countDocuments({ status: "Open" });
-    const underReview = await Case.countDocuments({ status: "Under Review" });
-    const escalated = await Case.countDocuments({ status: "Escalated" });
-    const reported = await Case.countDocuments({ status: "Reported" });
-    const closed = await Case.countDocuments({ status: "Closed" });
-
-    res.json({
+    // Run queries in parallel (IMPORTANT for performance)
+    const [
+      totalUsers,
       totalTransactions,
       flaggedTransactions,
       openCases,
@@ -84,6 +88,31 @@ const getDashboardStats = async (req, res) => {
       escalated,
       reported,
       closed
+    ] = await Promise.all([
+      User.countDocuments(),
+      Transaction.countDocuments(),
+      Transaction.countDocuments({ isFlagged: true }),
+      Case.countDocuments({ status: "open" }),
+      Case.countDocuments({ status: "underReview" }),
+      Case.countDocuments({ status: "escalated" }),
+      Case.countDocuments({ status: "reported" }),
+      Case.countDocuments({ status: "closed" })
+    ]);
+
+    const totalCases = openCases + underReview + escalated + reported + closed;
+
+    res.status(200).json({
+      totalUsers,
+      totalTransactions,
+      flaggedTransactions,
+      totalCases,
+      caseBreakdown: {
+        open: openCases,
+        underReview,
+        escalated,
+        reported,
+        closed
+      }
     });
 
   } catch (error) {
@@ -91,4 +120,4 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-module.exports = {createAnalyst, assignCase, getDashboardStats};
+module.exports = {createAnalyst, assignCase, getDashboardStats, getAllCases};

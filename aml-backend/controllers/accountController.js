@@ -30,14 +30,17 @@ const getMyAccounts = async (req, res) => {
   try {
     const accounts = await Account.find({
       user: req.user._id
-    });
+    })
+      .populate("user", "name email")
+      .populate({
+        path: "transactions",
+        options: { sort: { createdAt: -1 }, limit: 10 }
+      });
 
     res.status(200).json(accounts);
 
   } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 

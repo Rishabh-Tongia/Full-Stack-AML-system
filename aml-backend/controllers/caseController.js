@@ -6,7 +6,7 @@ const getOpenCases = async (req, res) => {
     try {
 
         const cases = await Case.find({
-            status: { $ne: "Closed" }
+            status: { $ne: "closed" }
         })
             .populate({
                 path: "account",
@@ -39,7 +39,7 @@ const assignCase = async (req, res) => {
         }
 
         caseData.assignedTo = analyst._id;
-        caseData.status = "Under Review";
+        caseData.status = "underReview";
 
         await caseData.save();
 
@@ -52,20 +52,24 @@ const assignCase = async (req, res) => {
 
 const addCaseNotes = async (req, res) => {
     try {
-        const { notes } = req.body;
+        const { text } = req.body;
 
         const caseData = await Case.findById(req.params.id);
 
         if (!caseData) {
-            return res.status(400).json({ message: "Case not found" });
+            return res.status(404).json({ message: "Case not found" });
         }
 
-        caseData.analystNotes = notes;
+        caseData.notes.push({
+            text,
+            addedBy: req.user._id,
+        });
 
         await caseData.save();
-        res.json({ message: "Notes added", caseData });
-    }
-    catch (error) {
+
+        res.json({ message: "Note added successfully" });
+
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
@@ -79,7 +83,7 @@ const escalateCase = async (req, res) => {
             return res.status(404).json({ message: "Case not found" });
         }
 
-        caseData.status = "Escalated";
+        caseData.status = "escalated";
 
         await caseData.save();
 
@@ -98,13 +102,33 @@ const reportCase = async (req, res) => {
             res.status(400).json({ message: "Case not found" });
         }
 
-        caseData.status = "Reported";
+        caseData.status = "reported";
 
         await caseData.save();
 
         res.json({ message: "SAR Reported", caseData });
     }
     catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getCaseById = async (req, res) => {
+    try {
+        const caseData = await Case.findById(req.params.id)
+            .populate({
+                path: "account",
+                populate: { path: "user" }
+            })
+            .populate("transactions")
+            .populate("assignedTo");
+
+        if (!caseData) {
+            return res.status(404).json({ message: "Case not found" });
+        }
+
+        res.json(caseData);
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
@@ -129,11 +153,41 @@ const closeCase = async (req, res) => {
     }
 };
 
+const getAnalysts = async (req, res) => {
+    try {
+        const analysts = await User.find({ role: "analyst" }).select("name email");
+        res.json(analysts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getMyCases = async (req, res) => {
+    try {
+        const cases = await Case.find({
+            assignedTo: req.user._id,
+            status: { $ne: "closed" }
+        })
+            .populate({
+                path: "account",
+                populate: { path: "user" }
+            })
+            .populate("transactions");
+
+        res.json(cases);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getOpenCases,
     assignCase,
     addCaseNotes,
     escalateCase,
     reportCase,
-    closeCase
+    closeCase,
+    getCaseById,
+    getAnalysts,
+    getMyCases
 };
