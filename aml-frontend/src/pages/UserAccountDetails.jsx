@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import DashboardLayout from "../layouts/DashboardLayout";
+
 
 const UserAccountDetail = () => {
 
@@ -11,6 +13,7 @@ const UserAccountDetail = () => {
   const [type, setType] = useState("deposit");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // Fetch account + transactions
   const fetchData = async () => {
@@ -38,7 +41,7 @@ const UserAccountDetail = () => {
 
     try {
 
-      await API.post("/api/transactions", {
+      await API.post("/api/transactions/create", {
         accountId: id,
         type,
         amount: Number(amount)
@@ -51,8 +54,12 @@ const UserAccountDetail = () => {
       // Refresh account + transactions
       fetchData();
 
-    } catch (error) {
-      alert(error.response?.data?.message || "Transaction failed");
+    } catch (err) {
+      if (err.response) {
+        setError(err.response.data.message);
+      } else {
+        setError("Transaction failed");
+      }
     }
   };
 
@@ -61,128 +68,124 @@ const UserAccountDetail = () => {
     return <div className="p-6">Loading...</div>;
   }
 
-  // Frozen Account
-  if (account.isFrozen) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl text-red-500 font-semibold">
-          Account is frozen due to compliance review
-        </h1>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 space-y-6">
+    <>
+      <DashboardLayout>
+        <div className="max-w-5xl mx-auto p-6 space-y-6">
 
-      {/* Page Title */}
-      <h1 className="text-3xl font-bold">
-        Account Details
-      </h1>
+          {/* Page Title */}
+          <h1 className="text-3xl font-bold">
+            Account Details
+          </h1>
 
-      {/* Account Info */}
-      <div className="bg-gray-100 p-4 rounded space-y-2">
-        <p><strong>Balance:</strong> ₹{account.balance}</p>
-        <p>
-          <strong>Frozen:</strong>
-          {account.isFrozen ? " Yes" : " No"}
-        </p>
-      </div>
+          {account.isFrozen && (
+            <div className="bg-red-100 border border-red-400 text-red-700 p-3 rounded">
+              ⚠ This account is frozen due to AML compliance review. Transactions are disabled.
+            </div>
+          )}
 
-      {/* Transaction Form */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">
-          New Transaction
-        </h2>
+          {/* Account Info */}
+          <div className="bg-gray-100 p-4 rounded space-y-2">
+            <p><strong>Balance:</strong> ₹{account.balance}</p>
+            <p>
+              <strong>Frozen:</strong>
+              {account.isFrozen ? " Yes" : " No"}
+            </p>
+          </div>
 
-        <form
-          onSubmit={handleTransaction}
-          className="bg-gray-100 p-4 rounded space-y-4"
-        >
+          {error && (
+            <div className="bg-red-100 text-red-700 p-3 rounded">
+              {error}
+            </div>
+          )}
 
+          {/* Transaction Form */}
           <div>
-            <label className="block mb-1">
-              Transaction Type
-            </label>
+            <h2 className="text-xl font-semibold mb-2">
+              New Transaction
+            </h2>
 
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="border p-2 w-full"
+            <form
+              onSubmit={handleTransaction}
+              className="bg-gray-100 p-4 rounded space-y-4"
             >
-              <option value="deposit">Deposit</option>
-              <option value="withdrawal">Withdrawal</option>
-            </select>
+
+              <div>
+                <label className="block mb-1">
+                  Transaction Type
+                </label>
+
+                <select
+                  value={type}
+                  disabled={account.isFrozen}
+                  onChange={(e) => setType(e.target.value)}
+                  className="border p-2 w-full"
+                >
+                  <option value="deposit">Deposit</option>
+                  <option value="withdrawal">Withdrawal</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1">
+                  Amount
+                </label>
+
+                <input
+                  type="number"
+                  value={amount}
+                  disabled={account.isFrozen}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="border p-2 w-full"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={account.isFrozen}
+                className={`px-4 py-2 rounded text-white ${account.isFrozen ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500"
+                  }`}
+              >
+                Submit Transaction
+              </button>
+
+            </form>
           </div>
 
+          {/* Transactions Table */}
           <div>
-            <label className="block mb-1">
-              Amount
-            </label>
+            <h2 className="text-xl font-semibold mb-2">
+              Transactions
+            </h2>
 
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="border p-2 w-full"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
-            Submit Transaction
-          </button>
-
-        </form>
-      </div>
-
-      {/* Transactions Table */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">
-          Transactions
-        </h2>
-
-        <table className="min-w-full border">
-
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="p-2 border">Type</th>
-              <th className="p-2 border">Amount</th>
-              <th className="p-2 border">Risk Score</th>
-              <th className="p-2 border">Flagged</th>
-            </tr>
-          </thead>
-
-          <tbody>
-
-            {transactions.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="p-4 text-center">
-                  No transactions yet
-                </td>
-              </tr>
-            ) : (
-              transactions.map((t) => (
-                <tr key={t._id}>
-                  <td className="p-2 border">{t.type}</td>
-                  <td className="p-2 border">₹{t.amount}</td>
-                  <td className="p-2 border">{t.riskScore}</td>
-                  <td className="p-2 border">
-                    {t.isFlagged ? "⚠ Yes" : "No"}
-                  </td>
+            <table className="w-full border mt-6">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2">Type</th>
+                  <th className="p-2">Amount</th>
+                  <th className="p-2">Risk Score</th>
+                  <th className="p-2">Flagged</th>
                 </tr>
-              ))
-            )}
+              </thead>
 
-          </tbody>
-
-        </table>
-      </div>
-
-    </div>
+              <tbody>
+                {transactions.map((tx) => (
+                  <tr key={tx._id} className="text-center border-t">
+                    <td>{tx.type}</td>
+                    <td>₹{tx.amount}</td>
+                    <td>{tx.riskScore}</td>
+                    <td>
+                      {tx.isFlagged ? "⚠️ Yes" : "No"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </DashboardLayout>
+    </>
   );
 };
 

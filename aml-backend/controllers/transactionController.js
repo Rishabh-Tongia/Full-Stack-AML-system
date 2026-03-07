@@ -5,7 +5,8 @@ const Case = require("../models/Case");
 
 const createTransaction = async (req, res) => {
     try {
-        const { accountId, type, amount } = req.body;
+        const { accountId, type } = req.body;
+        const amount = Number(req.body.amount);
 
         //validate input
         if (!accountId || !type || !amount) {
@@ -53,8 +54,6 @@ const createTransaction = async (req, res) => {
             account.balance -= amount;
         }
 
-        await account.save();
-
         //create transaction record
         const transaction = await Transaction.create({
             account: accountId,
@@ -64,6 +63,9 @@ const createTransaction = async (req, res) => {
             riskScore,
             flagReasons
         });
+
+        account.transactions.push(transaction._id);
+        await account.save();
 
         const generateCaseNumber = async () => {
             const count = await Case.countDocuments();
@@ -145,7 +147,6 @@ const getTransactionsByAccount = async (req, res) => {
         res.json(transactions);
 
     } catch (error) {
-
         res.status(500).json({
             message: error.message
         });

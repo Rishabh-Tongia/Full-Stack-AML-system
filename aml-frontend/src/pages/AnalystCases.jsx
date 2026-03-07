@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const AnalystCases = () => {
     const [cases, setCases] = useState([]);
@@ -35,61 +36,64 @@ const AnalystCases = () => {
     };
 
     return (
-        <div className="p-6">
-            <h1 className="text-3xl font-bold mb-4">My Assigned Cases</h1>
+        <>
+            <Navbar />
+            <div className="max-w-5xl mx-auto p-6">
+                <h1 className="text-3xl font-bold mb-4">My Assigned Cases</h1>
 
-            <table className="min-w-full border">
-                <thead className="bg-gray-200">
-                    <tr>
-                        <th className="p-2 border">Case No</th>
-                        <th className="p-2 border">User</th>
-                        <th className="p-2 border">Risk Score</th>
-                        <th className="p-2 border">Status</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {cases.map((c) => (
-                        <tr
-                            key={c._id}
-                            onClick={() => navigate(`/analyst/cases/${c._id}`)}
-                            className="cursor-pointer hover:bg-gray-100"
-                        >
-                            <td className="p-2 border">{c.caseNumber}</td>
-                            <td className="p-2 border">
-                                {c.account?.user?.name}
-                            </td>
-                            <td className="p-2 border">
-                                {c.totalRiskScore}
-                            </td>
-                            <td className="p-2 border">
-                                {c.status}
-                            </td>
+                <table className="min-w-full border">
+                    <thead className="bg-gray-200">
+                        <tr>
+                            <th className="p-2 border">Case No</th>
+                            <th className="p-2 border">User</th>
+                            <th className="p-2 border">Risk Score</th>
+                            <th className="p-2 border">Status</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
 
-            {/* Add Investigation Note */}
-            <div className="bg-yellow-50 p-4 rounded space-y-3 mt-6">
-                <h2 className="text-xl font-semibold">Add Investigation Note</h2>
+                    <tbody>
+                        {cases.map((c) => (
+                            <tr
+                                key={c._id}
+                                onClick={() => navigate(`/analyst/cases/${c._id}`)}
+                                className="cursor-pointer hover:bg-gray-100"
+                            >
+                                <td className="p-2 border">{c.caseNumber}</td>
+                                <td className="p-2 border">
+                                    {c.account?.user?.name}
+                                </td>
+                                <td className="p-2 border">
+                                    {c.totalRiskScore}
+                                </td>
+                                <td className="p-2 border">
+                                    {c.status}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
 
-                <textarea
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    className="w-full border p-2 rounded"
-                    rows="4"
-                    placeholder="Write your investigation note..."
-                />
+                {/* Add Investigation Note */}
+                <div className="bg-yellow-50 p-4 rounded space-y-3 mt-6">
+                    <h2 className="text-xl font-semibold">Add Investigation Note</h2>
 
-                <button
-                    onClick={handleAddNote}
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                    Add Note
-                </button>
+                    <textarea
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        className="w-full border p-2 rounded"
+                        rows="4"
+                        placeholder="Write your investigation note..."
+                    />
+
+                    <button
+                        onClick={handleAddNote}
+                        className="bg-blue-600 text-white px-4 py-2 rounded"
+                    >
+                        Add Note
+                    </button>
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

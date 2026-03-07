@@ -6,6 +6,11 @@ const accountSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  accountType: { 
+    type: String,
+    enum: ["savings", "current"],
+    required: true
+  },
   balance: {
     type: Number,
     default: 0
@@ -20,6 +25,12 @@ const accountSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
+  transactions: [
+    { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "Transaction" 
+    }
+  ],
   isFrozen: {
     type: Boolean,
     default: false

@@ -9,6 +9,7 @@ const createAccount = async (req, res) => {
 
     const account = await Account.create({
       accountNumber,
+      accountType: "savings",
       user: req.user._id,
       balance: 0
     });
@@ -44,7 +45,31 @@ const getMyAccounts = async (req, res) => {
   }
 };
 
+const getAccountById = async (req, res) => {
+  try {
+
+    const account = await Account.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    }).populate("user", "name email");
+
+    if (!account) {
+      return res.status(404).json({
+        message: "Account not found"
+      });
+    }
+
+    res.status(200).json(account);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
 module.exports = {
   createAccount,
-  getMyAccounts
+  getMyAccounts,
+  getAccountById
 };

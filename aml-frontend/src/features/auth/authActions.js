@@ -6,11 +6,12 @@ export const loginUser = (credentials) => async (dispatch) => {
   try {
     dispatch(loginStart());
 
-    const response = await API.post("/auth/login", credentials);
+    const response = await API.post("api/auth/login", credentials);
 
-    const { token } = response.data;
+    const { token, role } = response.data;
 
     localStorage.setItem("token", token);
+    localStorage.setItem("role",role);
 
     const decoded = jwtDecode(token);
     console.log("token: ", decoded);

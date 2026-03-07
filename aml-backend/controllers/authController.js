@@ -35,7 +35,8 @@ const registerUser = async (req, res) => {
         // 5️⃣ Create account linked to user
         const account = await Account.create({
             accountNumber,
-            user: user._id,   // ✅ FIXED (was owner before)
+            accountType: "savings",
+            user: user._id,   
             balance: 0
         });
 

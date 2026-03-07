@@ -1,17 +1,18 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
-import AdminDashboard from "./pages/AdminDashboard";
-import AnalystDashboard from "./pages/AnalystDashboard";
-import UserDashboard from "./pages/UserDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AnalystDashboard from "./pages/analyst/AnalystDashboard";
+import UserDashboard from "./pages/user/UserDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import AdminCases from "./pages/adminCases";
-import AdminCaseDetail from "./pages/AdminCaseDetail";
+import AdminCaseDetail from "./pages/admin/AdminCaseDetail";
 import AnalystCases from "./pages/AnalystCases";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Register from "./pages/Register";
 import UserAccounts from "./pages/UserAccounts";
 import UserAccountDetail from "./pages/UserAccountDetails";
+import CreateAnalyst from "./pages/admin/CreateAnalyst";
 
 function App() {
   return (
@@ -83,9 +84,20 @@ function App() {
         />
 
         <Route
+          path="/admin/create-analyst"
+          element={
+            <PrivateRoute allowedRole="admin">
+              <CreateAnalyst />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/admin/cases/:id"
           element={
-            <AdminCaseDetail />
+            <PrivateRoute allowedRole="admin">
+              <AdminCaseDetail />
+            </PrivateRoute>
           }
         />
 
