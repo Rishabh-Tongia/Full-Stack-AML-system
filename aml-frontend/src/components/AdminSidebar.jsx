@@ -6,8 +6,10 @@ export default function AdminSidebar() {
     const navigate = useNavigate();
 
     const logout = () => {
-        localStorage.clear();
-        navigate("/");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+
+        window.location.href = "/";
     };
 
     return (

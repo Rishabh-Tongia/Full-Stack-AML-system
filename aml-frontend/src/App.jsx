@@ -1,18 +1,20 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AnalystDashboard from "./pages/analyst/AnalystDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
 import PrivateRoute from "./components/PrivateRoute";
-import AdminCases from "./pages/adminCases";
+import AdminCases from "./pages/admin/AdminCases";
 import AdminCaseDetail from "./pages/admin/AdminCaseDetail";
-import AnalystCases from "./pages/AnalystCases";
+import AnalystCases from "./pages/analyst/AnalystCases";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Register from "./pages/Register";
 import UserAccounts from "./pages/UserAccounts";
 import UserAccountDetail from "./pages/UserAccountDetails";
 import CreateAnalyst from "./pages/admin/CreateAnalyst";
+import AnalystCaseDetails from "./pages/analyst/AnalystCaseDetails";
+import { Navigate } from "react-router-dom";
+import AnalystLayout from "./layouts/AnalystLayout";
 
 function App() {
   return (
@@ -57,15 +59,6 @@ function App() {
         />
 
         <Route
-          path="/analyst"
-          element={
-            <PrivateRoute allowedRole="analyst">
-              <AnalystDashboard />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
           path="/user"
           element={
             <PrivateRoute allowedRole="user">
@@ -92,6 +85,7 @@ function App() {
           }
         />
 
+
         <Route
           path="/admin/cases/:id"
           element={
@@ -101,12 +95,13 @@ function App() {
           }
         />
 
-        <Route
-          path="/analyst/cases"
-          element={
-            <AnalystCases />
-          }
-        />
+        <Route path="/analyst" element={<AnalystLayout />}>
+
+          <Route path="cases" element={<AnalystCases />} />
+
+          <Route path="case/:id" element={<AnalystCaseDetails />} />
+
+        </Route>
 
         <Route
           path="/user/accounts"

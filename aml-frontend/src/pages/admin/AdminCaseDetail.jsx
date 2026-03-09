@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../../services/api";
-import Navbar from "../../components/Navbar";
+import AdminSidebar from "../../components/AdminSidebar";
 
 const AdminCaseDetail = () => {
     const { id } = useParams();
@@ -68,8 +68,8 @@ const AdminCaseDetail = () => {
     };
 
     return (
-        <>
-            <Navbar />
+        <div className="flex">
+            <AdminSidebar/>
             <div className="max-w-5xl mx-auto p-6">
 
                 <h1 className="text-3xl font-bold">
@@ -158,12 +158,12 @@ const AdminCaseDetail = () => {
                     <h2 className="text-xl font-semibold">Account Info</h2>
                     <p>
                         <strong>User:</strong>{" "}
-                        {caseData.account?.user?.name || "N/A"}
+                        {caseData.transaction?.user?.name || "NA" || "N/A"}
                     </p>
 
                     <p>
                         <strong>Email:</strong>{" "}
-                        {caseData.account?.user?.email || "N/A"}
+                        {caseData.transaction?.user?.email || "NA"}
                     </p>
 
                     <p>
@@ -208,7 +208,7 @@ const AdminCaseDetail = () => {
                 </div>
 
             </div>
-        </>
+        </div>
     );
 };
 

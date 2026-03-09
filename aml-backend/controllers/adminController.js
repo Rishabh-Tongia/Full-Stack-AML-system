@@ -3,34 +3,34 @@ const Transaction = require("../models/Transaction");
 const Case = require("../models/Case");
 
 const createAnalyst = async (req, res) => {
-   try {
-      const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-      const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email });
 
-      if (existingUser) {
-         return res.status(400).json({
-            message: "User already exists"
-         });
-      }
-
-      const analyst = await User.create({
-         name,
-         email,
-         password,
-         role: "analyst"
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists"
       });
+    }
 
-      res.status(201).json({
-         message: "Analyst created successfully",
-         analyst
-      });
+    const analyst = await User.create({
+      name,
+      email,
+      password,
+      role: "analyst"
+    });
 
-   } catch (error) {
-      res.status(500).json({
-         message: error.message
-      });
-   }
+    res.status(201).json({
+      message: "Analyst created successfully",
+      analyst
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
 };
 
 const assignCase = async (req, res) => {
@@ -65,8 +65,14 @@ const assignCase = async (req, res) => {
 const getAllCases = async (req, res) => {
   try {
     const cases = await Case.find()
-      .populate("assignedTo", "name email") // only fetch name & email
-      .populate("transaction") 
+      .populate("assignedTo", "name email")
+      .populate({
+        path: "transaction",
+        populate: {
+          path: "user",
+          select: "name email"
+        }
+      })
       .sort({ createdAt: -1 });
 
     res.status(200).json(cases);
@@ -120,4 +126,4 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-module.exports = {createAnalyst, assignCase, getDashboardStats, getAllCases};
+module.exports = { createAnalyst, assignCase, getDashboardStats, getAllCases };

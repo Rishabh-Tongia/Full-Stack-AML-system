@@ -113,21 +113,33 @@ const reportCase = async (req, res) => {
     }
 };
 
+
 const getCaseById = async (req, res) => {
     try {
+
         const caseData = await Case.findById(req.params.id)
             .populate({
-                path: "account",
-                populate: { path: "user" }
+                path: "transactions",
+                select: "type amount riskScore status createdAt"
             })
-            .populate("transactions")
-            .populate("assignedTo");
+            .populate({
+                path: "account",
+                populate: {
+                    path: "user",
+                    select: "name email"
+                }
+            })
+            .populate({
+                path: "assignedTo",
+                select: "name email"
+            });
 
         if (!caseData) {
             return res.status(404).json({ message: "Case not found" });
         }
 
         res.json(caseData);
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -164,15 +176,32 @@ const getAnalysts = async (req, res) => {
 
 const getMyCases = async (req, res) => {
     try {
+
         const cases = await Case.find({
             assignedTo: req.user._id,
             status: { $ne: "closed" }
         })
             .populate({
                 path: "account",
-                populate: { path: "user" }
+                populate: {
+                    path: "user",
+                    select: "name email"
+                }
             })
             .populate("transactions");
+
+        res.json(cases);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getAnalystCases = async (req, res) => {
+    try {
+        const analystId = req.user.id;
+
+        const cases = await Case.find({ assignedTo: analystId });
 
         res.json(cases);
     } catch (error) {
@@ -189,5 +218,6 @@ module.exports = {
     closeCase,
     getCaseById,
     getAnalysts,
-    getMyCases
+    getMyCases,
+    getAnalystCases
 };

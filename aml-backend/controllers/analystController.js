@@ -2,13 +2,19 @@ const Case = require("../models/Case");
 
 const getMyCases = async (req, res) => {
   try {
-    const cases = await Case.find({
-      assignedTo: req.user._id
-    })
-      .populate("account")
+
+    const analystId = req.user.id;
+
+    const cases = await Case.find({ assignedTo: analystId })
+      .populate({
+        path: "account",
+        populate: {
+          path: "user",
+          select: "name email"
+        }
+      })
       .populate("transactions");
 
-      console.log("Logged in user:", req.user);
     res.json(cases);
 
   } catch (error) {
