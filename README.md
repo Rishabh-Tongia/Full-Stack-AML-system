@@ -316,8 +316,6 @@ Can be deployed on:
 # 👨‍💻 Author
 
 Rishabh Tongia
-Full Stack Developer
-AML Detection System Project
 
 ---
 
